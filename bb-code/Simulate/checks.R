@@ -11,7 +11,7 @@ checkDrug <- function(drug) {
     if (length(drug) > 1) {
         stop(paste0("Only one drug at a time: ", paste0(drug, collapse = ", ")))
     }
-    if (!drug %in% c("cefotaxime", "ciprofloxacin", "rifampicin")) {
+    if (!drug %in% c("ampicillin", "cefotaxime", "ciprofloxacin", "rifampicin", "tetracycline")) {
         stop(paste0("Drug not permitted: ", drug))
     }
 }
@@ -52,6 +52,12 @@ checkSimsPerNode <- function(sims.per.node, total.sims) {
     }
     if (sims.per.node > total.sims) {
         stop(paste0("The number of simulations per node must be less than or equal to the total number of simulations: ", sims.per.node, " vs ", total.sims))
+    }
+}
+
+checkQueue <- function(queue) {
+    if (!queue %in% c("04:00", "24:00")) {
+        stop(paste0("Queue not permitted: ", queue))
     }
 }
 

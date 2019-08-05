@@ -24,7 +24,7 @@ initial.cell <- c(1)
 names(initial.cell) <- cell.type
 
 #' Set the seed for reproducibility
-seed <- 526
+seed <- 146
 set.seed(seed)
 
 #' Cell initial conditions

@@ -13,8 +13,14 @@ source("R/plotFunctions.R")
 # Simulate ----
 #' Load parameters & modify
 drug <- "ciprofloxacin"
+drug <- "rifampicin"
+drug <- "cefotaxime"
 basic.params <- loadParameters(drug)
-basic.params$drug.outsideConcentration <- 0.5 * basic.params$MIC
+basic.params$drug.outsideConcentration <- 1.0 * basic.params$MIC
+#basic.params$rate.efflux.DNA.switchOn <- 10 * basic.params$rate.efflux.DNA.switchOn
+#basic.params$rate.target.binding <- 0
+basic.params$rate.efflux.binding <- 0
+
 
 #' Define some initial cell types and then create an explicit vector
 cell.type <- "WT"

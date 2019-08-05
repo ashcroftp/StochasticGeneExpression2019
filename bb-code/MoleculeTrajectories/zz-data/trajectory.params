@@ -9,7 +9,7 @@
 "drug.outsideConcentration",55
 "rate.drug.diffusion",0.0012
 "MIC",55
-"kappa",3
+"kappa",2
 "rate.target.binding",0.00358684822318167
 "rate.efflux.binding",0.00358684822318167
 "rate.dissociation",0.018
@@ -23,5 +23,6 @@
 "sd.generationTime",0
 "mutant.effect",2
 "fitness.cost",0.05
-"MIC.fraction",0.085
+"MIC.fraction",0.0806
 "drug.off",Inf
+"efflux.binom.param",0.5

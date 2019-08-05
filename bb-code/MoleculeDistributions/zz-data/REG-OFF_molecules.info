@@ -1,0 +1,74 @@
+$drug
+[1] "ciprofloxacin"
+
+$cell.type
+[1] "REG-OFF"
+
+$output
+[1] "molecules"
+
+$total.sims
+[1] 10000
+
+$sims.per.node
+[1] 1000
+
+$EULER
+[1] TRUE
+
+$queue
+[1] "04:00"
+
+$file.id
+[1] "REG-OFF_molecules"
+
+$data.directory
+[1] "MoleculeDistributions/zz-data/"
+
+$timestamp
+[1] "##------ Fri Jul 26 22:41:50 2019 ------##"
+
+$version
+$version$platform
+[1] "x86_64-slackware-linux-gnu"
+
+$version$arch
+[1] "x86_64"
+
+$version$os
+[1] "linux-gnu"
+
+$version$system
+[1] "x86_64, linux-gnu"
+
+$version$status
+[1] ""
+
+$version$major
+[1] "3"
+
+$version$minor
+[1] "5.1"
+
+$version$year
+[1] "2018"
+
+$version$month
+[1] "07"
+
+$version$day
+[1] "02"
+
+$version$`svn rev`
+[1] "74947"
+
+$version$language
+[1] "R"
+
+$version$version.string
+[1] "R version 3.5.1 (2018-07-02)"
+
+$version$nickname
+[1] "Feather Spray"
+
+

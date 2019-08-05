@@ -12,6 +12,7 @@ library(cowplot)
 #' - gradientPalette()
 #' - label_panels()
 #' - sciFormat()
+#' - logTicks
 #' - cellColours()
 #' - plotSave()
 #' - plotPopSize()
@@ -50,9 +51,29 @@ sciFormat <- function(l) {
     parse(text = l)
 }
 
+#' Function to return major and minor logarithmic tick points
+#' 
+#' \code{logTicks()}
+#' @param minor (bool): Do we return minor ticks as well as major?
+#' @return (list): A list of two vectors (major and minor tick values)
+#' @examples logTicks(minor = TRUE)
+logTicks <- function(minor = TRUE) {
+    breaks <- 10^c(-4:9)
+    if (minor) {
+        minor.breaks <- unlist(lapply(breaks, function(lower) lower * c(2:9) ))
+    }
+    else minor.breaks <- NULL
+    return(list(major = breaks, minor = minor.breaks))
+}
+
+
 #' Assign colours to each cell type
 cellColours <- function() {
-    c(KO = "darkmagenta", WT = "lightblue", `REG-ON` = "orange", `REG-OFF` = "orange", `REG-BURST` = "orange", `STRUCT-BIND` = "green", `STRUCT-CAT` = "green")
+    #c(KO = "darkmagenta", WT = "lightblue", `REG-ON` = "orange", `REG-OFF` = "orange", `REG-BURST` = "orange", `STRUCT-BIND` = "green", `STRUCT-CAT` = "green")
+    colours <- palette_OkabeIto[1:7]
+    #names(colours) <- c("WT", "STRUCT-CAT", "STRUCT-BIND", "REG-ON", "REG-OFF", "REG-BURST", "KO")
+    names(colours) <- c("KO", "REG-BURST", "STRUCT-BIND", "STRUCT-CAT", "REG-ON", "REG-OFF", "WT")
+    return(colours)
 }
 
 #' My saving function to store figures with nice dimensions

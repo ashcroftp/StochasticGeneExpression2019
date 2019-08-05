@@ -2,11 +2,22 @@
 #' Authors: Lei Sun & Peter Ashcroft, ETH Zurich
 
 #' Dependencies:
+if (basename(getwd()) == "bb-code") {
+    source("R/basicFunctions.R")
+    source("Simulate/filenames.R")
+} else {
+    source("../R/basicFunctions.R")
+    source("../Simulate/filenames.R")
+}
 library(reshape2)
 
 #' Function list:
 #' - analysePopSize()
 #' - withinCellDF()
+#' - computeSurvival()
+#' - computeGrowth()
+#' - fitSpline()
+#' - computeICX()
 
 
 #' Take the family tree data frame,
@@ -105,3 +116,216 @@ withinCellDF <- function(generation, data, params, add.volume = TRUE) {
     #'
     return(data)
 }
+
+#' Compute the lineage survival probability
+computeSurvival <- function(data.directory, file.id) {
+    #' Load the data
+    data <- read.csv(output.file(data.directory, file.id))
+    #data$sim.label <- factor(data$sim.label, levels = sort(unique(data$sim.label)))
+    data$param.index <- factor(data$param.index, levels = sort(unique(data$param.index)))
+    
+    #' Compute the survival probability and mean extinction time for each parameter set
+    survival <- by(data, list(data$param.index), function(df) {
+        tmp <- df[1, ]
+        tmp$survive <- mean(df$survive)
+        tmp$extinction.time <- mean(df[df$survive == 0, "exit.time"])
+        tmp$extinction.time.sd <- sd(df[df$survive == 0, "exit.time"])
+        tmp$num.reps <- nrow(df)
+        return(tmp[, names(tmp)[!names(tmp) %in% c("sim.label", "num.cells", "exit.time")]])
+    })
+    survival <- do.call(rbind, survival)
+    return(survival)
+}
+
+
+#' Compute population growth rates
+computeGrowth <- function(data.directory, file.id, final.times = 60) {
+    #' Load the data
+    data <- read.csv(output.file(data.directory, file.id))
+    #data$sim.label <- factor(data$sim.label, levels = sort(unique(data$sim.label)))
+    data$param.index <- factor(data$param.index, levels = sort(unique(data$param.index)))
+    
+    
+    
+    #' Sum over the simulations
+    summed.data <- by(data, list(data$sample.time, data$param.index), function(df) {
+        tmp <- df[1, ]
+        tmp$num.cells <- sum(df$num.cells)
+        return(tmp[, names(tmp)[names(tmp) != "sim.label"]])
+    })
+    summed.data <- do.call(rbind, summed.data)
+    
+    #' Compute growth rates
+    growth.rates <- by(summed.data, list(summed.data$param.index), function(df) {
+        DFapply(final.times, function(t.end) {
+            dff <- df[df$num.cells > 0 & df$sample.time <= t.end, ]
+            ic <- dff[dff$sample.time == 0, "num.cells"]
+            
+            fit.df <- data.frame(sample.time = dff$sample.time, fit.var = log10(dff$num.cells) - log10(ic))
+            rate <- lm(fit.var ~ sample.time - 1, fit.df)$coefficients[["sample.time"]]
+            
+            tmp <- dff[1, names(dff)[!names(dff) %in% c("sample.time", "num.cells")]]
+            tmp$rate <- rate
+            tmp$t.end <- factor(t.end)
+            return(tmp)
+        })
+    })
+    growth.rates <- do.call(rbind, growth.rates)
+    return(growth.rates)
+}
+
+#' Approximate values of x and/or y by linearly interpolating data
+fitLinear <- function(x, y, pred.x = NULL, pred.y = NULL) {
+    #' Do we predict specific values of y?
+    if (!is.null(pred.x)) {
+        y.vals <- approx(x = x, y = y, xout = pred.x, ties = min)$y
+        return(y.vals)
+    }
+    
+    #' Do we predict specific values of x? 
+    if (!is.null(pred.y)) {
+        x.vals <- approx(x = y, y = x, xout = pred.y, ties = min)$y
+        return(x.vals)
+    }
+    
+    #' Do we want a dataframe of x and y predictions?
+    if (is.null(pred.x) & is.null(pred.y)) {
+        x.vals <- seq(min(x), max(x), length.out = 101)
+        y.vals <- approx(x = x, y = y, xout = x.vals, ties = min)$y
+        return(data.frame(x = x.vals, y = y.vals) )
+    }
+}
+
+#' Fit a spline to given x~y data
+fitSpline <- function(x, y, weights = NULL, pred.x = NULL, pred.y = NULL, DOF = 8) {
+    #' First create a dataframe of x and y, and add weights if necessary
+    data <- data.frame(x = x, y = y)
+    
+    if (is.null(weights)) data$weights <- 1
+    else data$weights <- weights
+    
+    #' Fit the interpolating spline to the data
+    mod <- smooth.spline(x = data$x, y = data$y, w = data$weights, df = DOF)
+    
+    #' Do we predict specific values of y?
+    if (!is.null(pred.x)) {
+        y.vals <- predict(object = mod, x = pred.x)$y
+        return(y.vals)
+    }
+    
+    #' Do we predict specific values of x? 
+    if (!is.null(pred.y)) {
+        #' First we have to create a list of x and y values using the spline, and thenwe interpolate the x-values for a given y
+        x.vals <- seq(min(data$x), max(data$x), length.out = 101)
+        y.vals <- predict(object = mod, x = x.vals)$y
+        sol <- approx(x = y.vals, y = x.vals, xout = pred.y, ties = min)
+        return(sol$y)
+    }
+    
+    #' Do we want a dataframe of x and y predictions?
+    if (is.null(pred.x) & is.null(pred.y)) {
+        x.vals <- seq(min(data$x), max(data$x), length.out = 101)
+        y.vals <- predict(object = mod, x = x.vals)$y
+        return(data.frame(x = x.vals, y = y.vals) )
+    }
+}
+
+#' Fit a spline to given x~y data
+fitSigmoid <- function(x, y, weights = NULL, pred.x = NULL, pred.y = NULL) {
+    #' First create a dataframe of x and y, and add weights if necessary
+    df <- data.frame(x = x, y = y)
+    
+    if (is.null(weights)) df$weights <- 1
+    else df$weights <- weights
+    
+    #' Sort the dataframe by x
+    df <- df[order(df$x), ]
+    
+    #' First we try to fit a sigmoidal function
+    #' Initial inflection guess
+    x0.guess <- tryCatch(
+        approx(y = df$x, x = df$y, xout = c(0.5), ties = min),
+        error = function(e) return(list(y = NA))
+    )
+    if (!is.finite(x0.guess$y)) x0.guess <- 1
+    else x0.guess <- x0.guess$y
+    
+    #' Initial gradient guess
+    a.guess <- max(sapply(c(1:(nrow(df) - 1)), function(i) {
+        -4 * (df[i + 1, "y"] - df[i, "y"]) / (df[i + 1, "x"] - df[i, "x"])
+    }))
+    
+    #' Fit sigmoid
+    sol <- NULL
+    mod <- tryCatch(
+        nls(y ~ 1 - 1 / (1 + exp(- a * (x - x0))), data = df, start = list(a = a.guess, x0 = x0.guess),
+            weights = df$weights, control = nls.control(minFactor = 2^-16, maxiter = 100)),
+        error = function(e) {
+            print("failed to fit sigmoid")
+            return(NULL)
+        }
+    )
+    
+    #' Do we predict specific values of y?
+    if (!is.null(pred.x)) {
+        y.vals <- predict(object = mod, newdata = data.frame(x = pred.x))
+        return(y.vals)
+    }
+    
+    #' Do we predict specific values of x? 
+    if (!is.null(pred.y)) {
+        #' First we have to create a list of x and y values using the spline, and thenwe interpolate the x-values for a given y
+        x.vals <- seq(min(df$x), max(df$x), length.out = 101)
+        y.vals <- predict(object = mod, newdata = data.frame(x = x.vals))
+        sol <- approx(x = y.vals, y = x.vals, xout = pred.y, ties = min)
+        return(sol$y)
+    }
+    
+    #' Do we want a dataframe of x and y predictions?
+    if (is.null(pred.x) & is.null(pred.y)) {
+        x.vals <- seq(min(df$x), max(df$x), length.out = 101)
+        y.vals <- predict(object = mod, newdata = data.frame(x = x.vals))
+        return(data.frame(x = x.vals, y = y.vals) )
+    }
+}
+
+#' From a dataframe containing survival probabilities over a range of drug concentrations, compute the ICx values, such as IC50 and IC90...
+#' @param data (dataframe): Dataframe containing the columns survive (survival probability) and drug.outsideConcentration.MULT
+#' @value A named vector of ICX values
+computeICX <- function(data) {
+    #' First we try to fit a sigmoidal function
+    #' Initial inflection guess
+    x0.guess <- tryCatch(
+        approx(y = data$drug.outsideConcentration.MULT, x = data$survive, xout = c(0.5), ties = min),
+        error = function(e) return(list(y = NA))
+    )
+    if (!is.finite(x0.guess$y)) x0.guess <- 1
+    else x0.guess <- x0.guess$y
+    #' Initial gradient guess
+    a.guess <- max(sapply(c(1:(nrow(data) - 1)), function(i) {
+        -4 * (data[i + 1, "survive"] - data[i, "survive"]) / (data[i + 1, "drug.outsideConcentration.MULT"] - data[i, "drug.outsideConcentration.MULT"])
+    }))
+    #' Fit sigmoid (weighted by number of replicates per point)
+    sol <- NULL
+    mod <- tryCatch(
+        nls(survive ~ 1 - 1 / (1 + exp(- a * (drug.outsideConcentration.MULT - x0))), data = data, start = list(a = a.guess, x0 = x0.guess),
+            weights = data$num.reps, control = nls.control(minFactor = 2^-16, maxiter = 100)),
+        error = function(e) return(NULL)
+    )
+    
+    if (!is.null(mod)) {
+        sol <- with(c(coef(mod), list(S = 1 - c(0.5, 0.9, 0.99, 0.999))), x0 - (1/a) * log(S / (1 - S)))
+    } else{
+        #' Use linear interpolation instead
+        sol <- tryCatch(
+            approx(y = data$drug.outsideConcentration.MULT, x = data$survive, xout = 1 - c(0.5, 0.9, 0.99, 0.999), ties = min)$y,
+            error = function(e) return(NULL)
+        )
+    }
+    if (is.null(sol)) return(NULL)
+    
+    names(sol) <- c("IC50", "IC90", "IC99", "IC99.9")
+    return(sol)
+}
+
+

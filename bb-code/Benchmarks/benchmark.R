@@ -16,5 +16,5 @@ library(tictoc)
 args <- commandArgs(trailingOnly = TRUE)
 
 tic("simulation time")
-system(paste("R --vanilla --slave < Simulate/simulate.R --args", args[1], sep = " "))
+system(paste("./simulate.sh", args[1], sep = " "))
 toc(log = T)

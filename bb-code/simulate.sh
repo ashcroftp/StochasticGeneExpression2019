@@ -1,2 +1,2 @@
 #!/bin/bash
-R --vanilla --slave < Simulate/simulate.R --args $@
+R --vanilla --slave < Simulate/simulate-script.R --args $@

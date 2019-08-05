@@ -61,3 +61,6 @@ fitness.cost <- 0.05 # [dimensionless] (\nu)
 
 #' Still not sure that this is needed...
 efflux.binding.factor <- 1
+
+#' Are the efflux pumps centered on one pole during cell division?
+efflux.binom.param <- 0.5

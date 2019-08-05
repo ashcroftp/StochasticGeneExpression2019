@@ -41,7 +41,7 @@
 drug.targets <- round(300 * (2/3)) # [n]
 #' Drug effect
 drug.MIC <- round((0.03 * 1.0e-18) / (331.347 / 6.022e23)) # [n um^{-3}]: MIC drug concentration
-drug.kappa <- 3.0 # [dimensionless]: Shape (steepness) parameter (\kappa)
+drug.kappa <- 2.0 # [dimensionless]: Shape (steepness) parameter (\kappa)
 #' Drug dynamics
 drug.outsideConcentration <- 0.0 # [n um^{-3}]: Concentration of drug in the environment (constant: c_out, zero by default)
 drug.diffusionConstant <- 2.0e-11 * 60.0*1.0e6 # [um minute^{-1}]: Rate at which drug enters the cell (\sigma)
@@ -53,6 +53,6 @@ drug.deacylationRate <- 0 # [minute^{-1}]: Drug will spontaneously de-activate a
 #' Population dynamics
 pop.minGrowthRate <- -6.5 / 60.0 # [minute^{-1}]: Minimum growth rate (\psi_{min})
 #' MIC fraction of bound targets
-MIC.fraction <- 0.085 # Determined by simulation (\rho_{MIC})
+MIC.fraction <- 0.0806 # Determined by simulation (\rho_{MIC})
 
 #efflux.binding.factor <- 2

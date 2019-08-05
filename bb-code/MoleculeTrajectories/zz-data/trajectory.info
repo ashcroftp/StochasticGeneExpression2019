@@ -1,3 +1,10 @@
+
+> print(
++     list(
++         drug = drug,
++         cell.type = cell.type,
++         drug.on = new.time,
++         drug.dose = basic.params$drug.out .... [TRUNCATED] 
 $drug
 [1] "ciprofloxacin"
 
@@ -11,7 +18,7 @@ $drug.dose
 [1] 55
 
 $timestamp
-[1] "##------ Mon Dec 17 15:34:24 2018 ------##"
+[1] "##------ Sun Jul 21 08:03:52 2019 ------##"
 
 $version
 $version$platform
@@ -57,3 +64,5 @@ $version$nickname
 [1] "Joy in Playing"
 
 
+
+> sink()

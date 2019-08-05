@@ -1,16 +1,16 @@
 #!/bin/bash
 
 echo "WT"
-R --vanilla --slave < ../Simulate/simulate.R --args PopulationGrowth/config-WT-growth.R
+./simulate.sh PopulationGrowth/config-ciprofloxacin-WT.R
 echo "REG-BURST"
-R --vanilla --slave < ../Simulate/simulate.R --args PopulationGrowth/config-REG-BURST-growth.R
+./simulate.sh PopulationGrowth/config-ciprofloxacin-REG-BURST.R
 echo "REG-ON"
-R --vanilla --slave < ../Simulate/simulate.R --args PopulationGrowth/config-REG-ON-growth.R
+./simulate.sh PopulationGrowth/config-ciprofloxacin-REG-ON.R
 echo "REG-OFF"
-R --vanilla --slave < ../Simulate/simulate.R --args PopulationGrowth/config-REG-OFF-growth.R
+./simulate.sh PopulationGrowth/config-ciprofloxacin-REG-OFF.R
 echo "STRUCT-BIND"
-R --vanilla --slave < ../Simulate/simulate.R --args PopulationGrowth/config-STRUCT-BIND-growth.R
+./simulate.sh PopulationGrowth/config-ciprofloxacin-STRUCT-BIND.R
 echo "STRUCT-CAT"
-R --vanilla --slave < ../Simulate/simulate.R --args PopulationGrowth/config-STRUCT-CAT-growth.R
+./simulate.sh PopulationGrowth/config-ciprofloxacin-STRUCT-CAT.R
 echo "KO"
-R --vanilla --slave < ../Simulate/simulate.R --args PopulationGrowth/config-KO-growth.R
+./simulate.sh PopulationGrowth/config-ciprofloxacin-KO.R
